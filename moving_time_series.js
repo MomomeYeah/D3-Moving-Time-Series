@@ -1,5 +1,8 @@
 (function() {
-    var data = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45];
+    var updateInterval = 500;
+    var size = 20;
+    var random = d3.randomUniform(0, 100);
+    var data = d3.range(size).map(random);
 
     var widthBase = 720;
     var heightBase = 480;
@@ -12,26 +15,23 @@
     var width = widthBase - margins.left - margins.right;
     var height = heightBase - margins.top - margins.bottom;
 
-    // 10 data points, spread across the width
     var x = d3.scaleLinear()
-        //.domain([0, data.length])
-        .domain(d3.extent(data, function(d,i) { return i }))
+        .domain([0, size - 1])
         .range([0, width]);
 
-    // 0 - 45, spread across the height
     var y = d3.scaleLinear()
-        .domain([0, d3.max(data)])
+        .domain([0, 100])
         .range([height, 0]);
 
     var line = d3.line()
         .x(function(d,i) {
             // given data point d and index i, return the result of X(i)
-            console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
+            // console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
             return x(i);
         })
         .y(function(d) {
             // given data point d, return the result of Y(d)
-            console.log('Plotting Y value for data point: ' + d + ' to be at: ' + y(d) + " using our yScale.");
+            // console.log('Plotting Y value for data point: ' + d + ' to be at: ' + y(d) + " using our yScale.");
             return y(d);
         });
 
@@ -51,9 +51,38 @@
         .attr("class", "y axis")
         .call(d3.axisLeft(y));
 
-    graph.append("svg:path")
-        .data([data])
+    graph.append("defs")
+        .append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+                .attr("width", width)
+                .attr("height", height);
+
+    graph.append("g")
+        .attr("clip-path", "url(#clip)")
+        .append("svg:path")
         .attr("class", "line")
-        .attr("d", line);
+        .datum(data)
+        .transition()
+            .duration(updateInterval)
+            .ease(d3.easeLinear)
+            .on("start", update);
+
+    function update() {
+        data.push(Math.random() * 100);
+
+        // redraw
+        graph.select(".line")
+            .attr("d", line)
+            .attr("transform", null);
+
+        // slide
+        d3.active(this)
+            .attr("transform", "translate(" + x(-1) + ",0)")
+            .transition()
+                .on("start", update);
+
+        data.shift();
+    };
 
 })();
