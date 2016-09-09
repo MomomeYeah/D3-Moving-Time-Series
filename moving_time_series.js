@@ -47,9 +47,28 @@
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x));
 
+    // text label for the y axis
+    graph.append("text")
+        .attr("class", "axis-label")
+        .attr("y", height + (margins.bottom / 2))
+        .attr("x", width / 2)
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Seconds Since");
+
     graph.append("svg:g")
         .attr("class", "y axis")
         .call(d3.axisLeft(y));
+
+    // text label for the y axis
+    graph.append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - (2 * margins.left / 3))
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Percent");
 
     graph.append("defs")
         .append("clipPath")
