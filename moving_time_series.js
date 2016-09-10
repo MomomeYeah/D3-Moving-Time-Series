@@ -1,6 +1,6 @@
 (function() {
     var updateInterval = 500;
-    var size = 20;
+    var size = 21;
     var random = d3.randomUniform(0, 100);
     var data = d3.range(size).map(random);
 
@@ -18,6 +18,11 @@
     var x = d3.scaleLinear()
         .domain([0, size - 1])
         .range([0, width]);
+
+    var xAxis = d3.axisBottom(x)
+        .tickFormat(function(d) {
+            return size - d - 1;
+        });
 
     var y = d3.scaleLinear()
         .domain([0, 100])
@@ -45,7 +50,7 @@
     graph.append("svg:g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x));
+        .call(xAxis);
 
     // text label for the y axis
     graph.append("text")
