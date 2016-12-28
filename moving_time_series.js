@@ -1,8 +1,8 @@
 (function() {
     var updateInterval = 500;
-    var size = 21;
-    var random = d3.randomUniform(0, 100);
-    var data = d3.range(size).map(random);
+
+    var displaySize = 20;
+    var dataSize = displaySize + 3;
 
     var widthBase = 720;
     var heightBase = 480;
@@ -16,29 +16,76 @@
     var height = heightBase - margins.top - margins.bottom;
 
     var x = d3.scaleLinear()
-        .domain([0, size - 1])
+        .domain([0, displaySize])
         .range([0, width]);
 
     var xAxis = d3.axisBottom(x)
         .tickFormat(function(d) {
-            return size - d - 1;
+            return displaySize - d;
         });
 
     var y = d3.scaleLinear()
         .domain([0, 100])
         .range([height, 0]);
 
-    var line = d3.line()
-        .x(function(d,i) {
-            // given data point d and index i, return the result of X(i)
-            // console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
-            return x(i);
-        })
-        .y(function(d) {
-            // given data point d, return the result of Y(d)
-            // console.log('Plotting Y value for data point: ' + d + ' to be at: ' + y(d) + " using our yScale.");
-            return y(d);
+    function updateFunc(arr) {
+        arr.push(Math.random() * 100);
+    }
+
+    // thanks to http://www.mulinblog.com/a-color-palette-optimized-for-data-visualization/
+    var colors = [
+        "#5DA5DA",
+        "#FAA43A",
+        "#60BD68",
+        "#F17CB0",
+        "#B2912F",
+        "#B276B2",
+        "#DECF3F"
+    ];
+
+    function generateData() {
+        var ret = []
+        //var loopArr = [0];
+        var loopArr = [0, 1, 2, 3];
+        //var loopArr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        loopArr.forEach((item) => {
+            var dArray = d3.range(dataSize).map(d3.randomUniform(0, 100));
+            ret.push({
+                dataArray: dArray,
+                color: colors[item % colors.length],
+                cssClass: "line" + item,
+                line: null,
+                updateFunc: () => {
+                    updateFunc(dArray);
+                },
+                shiftFunc: () => {
+                    dArray.shift();
+                }
+            });
         });
+        return ret;
+    }
+
+    var data = generateData();
+
+    function createLine() {
+        return d3.line()
+            .x(function(d,i) {
+                // given data point d and index i, return the result of X(i)
+                // console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
+                return x(i - 1);
+            })
+            .y(function(d) {
+                // given data point d, return the result of Y(d)
+                // console.log('Plotting Y value for data point: ' + d + ' to be at: ' + y(d) + " using our yScale.");
+                return y(d);
+            })
+            .curve(d3.curveBasis);
+    }
+
+    data.forEach((item) => {
+        item.line = createLine();
+    });
 
     var graph = d3.select(".graph")
         .append("svg:svg")
@@ -75,6 +122,7 @@
         .style("text-anchor", "middle")
         .text("Percent");
 
+    // define clip path
     graph.append("defs")
         .append("clipPath")
             .attr("id", "clip")
@@ -82,31 +130,45 @@
                 .attr("width", width)
                 .attr("height", height);
 
-    graph.append("g")
-        .attr("clip-path", "url(#clip)")
-        .append("svg:path")
-        .attr("class", "line")
-        .datum(data)
-        .transition()
-            .duration(updateInterval)
-            .ease(d3.easeLinear)
-            .on("start", update);
+    function addLineForDataSource(dataItem) {
+        graph.append("g")
+                .attr("clip-path", "url(#clip)")
+            .append("svg:path")
+                .attr("class", dataItem.cssClass)
+                .attr("style", "stroke: " + dataItem.color)
+                .datum(dataItem.dataArray)
+                .transition()
+                    .duration(updateInterval)
+                    .ease(d3.easeLinear)
+                    .on("start", function() {
+                        var context = this;
+                        update(context, dataItem);
+                    });
+    }
 
-    function update() {
-        data.push(Math.random() * 100);
+    data.forEach((item) => {
+        addLineForDataSource(item);
+    })
+
+    function update(context, dataItem) {
+        // add new data point
+        dataItem.updateFunc();
 
         // redraw
-        graph.select(".line")
-            .attr("d", line)
+        graph.select("." + dataItem.cssClass)
+            .attr("d", dataItem.line)
             .attr("transform", null);
 
         // slide
-        d3.active(this)
+        d3.active(context)
             .attr("transform", "translate(" + x(-1) + ",0)")
             .transition()
-                .on("start", update);
+                .on("start", function() {
+                    update(context, dataItem)
+                });
 
-        data.shift();
+        // remove oldest pata point
+        dataItem.shiftFunc();
     };
 
 })();
