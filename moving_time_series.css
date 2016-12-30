@@ -32,3 +32,17 @@ path {
 .axis-label {
 	font-size: 12px;
 }
+
+/* legend */
+#legend {
+	fill: #fff;
+	stroke-width: 0;
+}
+
+.legend-item { }
+
+.legend-text {
+	stroke-width: 0;
+	fill: #000;
+	font-size: 0.85em;
+}

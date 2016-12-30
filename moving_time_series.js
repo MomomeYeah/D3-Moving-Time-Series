@@ -8,6 +8,10 @@ function displayGraphs() {
 
     var widthBase = 720;
     var heightBase = 480;
+
+    var legendWidth = widthBase;
+    var legendHeight = 40;
+
     var margins = {
         "top": 20,
         "right": 20,
@@ -15,7 +19,7 @@ function displayGraphs() {
         "left": 70
     };
     var width = widthBase - margins.left - margins.right;
-    var height = heightBase - margins.top - margins.bottom;
+    var height = heightBase - margins.top - margins.bottom - legendHeight;
 
     var x = d3.scaleLinear()
         .domain([0, displaySize])
@@ -55,7 +59,9 @@ function displayGraphs() {
             ret.push({
                 dataArray: dArray,
                 color: colors[item % colors.length],
-                cssClass: "line" + item,
+                pathClass: "line" + item,
+                legendClass: "legend" + item,
+                legendLabel: "item " + item,
                 line: null,
                 updateFunc: () => {
                     updateFunc(dArray);
@@ -92,12 +98,19 @@ function displayGraphs() {
     // clear contents of graph node in case we're redrawing
     d3.select(".graph").selectAll("*").remove();
 
-    var graph = d3.select(".graph")
+    d3.select(".graph")
         .append("svg:svg")
             .attr("preserveAspectRatio", "xMinYMin meet")
             .attr("viewBox", "0 0 " + widthBase + " " + heightBase)
         .append("svg:g")
-            .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
+            .attr("id", "legendGroup")
+            .attr("transform", "translate(" + margins.left + "," + margins.top + ")")
+        .append("svg:g")
+            .attr("id", "graphGroup")
+            .attr("transform", "translate(0," + legendHeight + ")")
+
+    var legend = d3.select("#legendGroup");
+    var graph = d3.select("#graphGroup");
 
     graph.append("svg:g")
         .attr("class", "x axis")
@@ -135,11 +148,20 @@ function displayGraphs() {
                 .attr("width", width)
                 .attr("height", height);
 
+    // add legend
+    legend.append("g")
+        .attr("id", "legend")
+        .append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", legendWidth)
+            .attr("height", legendHeight);
+
     function addLineForDataSource(dataItem) {
         graph.append("g")
                 .attr("clip-path", "url(#clip)")
             .append("svg:path")
-                .attr("class", dataItem.cssClass)
+                .attr("class", dataItem.pathClass)
                 .attr("style", "stroke: " + dataItem.color)
                 .datum(dataItem.dataArray)
                 .transition()
@@ -151,8 +173,50 @@ function displayGraphs() {
                     });
     }
 
+    var offset = 0;
+    var radius = height / 40;
+    var legendItemYOffset = height / 40;
+    var legendTextYOffset = height / 30;
+    function addLegendItemForDataSource(dataItem) {
+        var textEl = d3.select("#legend")
+                        .append("text")
+                            .attr("x", width - offset)
+                            .attr("y", legendTextYOffset)
+                            .attr("text-anchor", "end")
+                            .attr("class", "legend-text")
+                            .text(dataItem.legendLabel)
+                            .on("click", function() {
+                                // if this.lineVisibile === undefined, we haven't
+                                // toggled it yet, so it must be visible
+                                var lineVisibile = this.lineVisibile;
+                                if (lineVisibile === undefined || !lineVisibile) {
+                                    this.lineVisibile = true;
+                                } else {
+                                    this.lineVisibile = false;
+                                }
+
+                                // if line is now visible, opacity = 0, else 1
+                                var opacity = this.lineVisibile ? 0 : 1;
+                                d3.select("." + dataItem.pathClass)
+                                    .attr("opacity", opacity);
+                            });
+
+        offset += textEl.node().getComputedTextLength() + (radius * 1.5);
+
+        d3.select("#legend")
+            .append("circle")
+                .attr("r", radius)
+                .attr("cx", width - offset)
+                .attr("cy", legendItemYOffset)
+                .attr("class", "legend-item " + dataItem.legendClass)
+                .attr("style", "fill: " + dataItem.color);
+
+        offset += radius * 1.5;
+    }
+
     data.forEach((item) => {
         addLineForDataSource(item);
+        addLegendItemForDataSource(item);
     })
 
     function update(context, dataItem) {
@@ -160,7 +224,7 @@ function displayGraphs() {
         dataItem.updateFunc();
 
         // redraw
-        graph.select("." + dataItem.cssClass)
+        graph.select("." + dataItem.pathClass)
             .attr("d", dataItem.line)
             .attr("transform", null);
 
