@@ -49,7 +49,7 @@
         var loopArr = [0, 1, 2, 3];
         //var loopArr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         loopArr.forEach((item) => {
-            var dArray = d3.range(dataSize).map(d3.randomUniform(0, 100));
+            var dArray = d3.range(dataSize).map(() => 0);
             ret.push({
                 dataArray: dArray,
                 color: colors[item % colors.length],
