@@ -1,6 +1,5 @@
 /* tell the SVG path to be a thin blue line without any area fill */
 path {
-	stroke: steelblue;
 	stroke-width: 2;
 	fill: none;
 }
@@ -9,24 +8,11 @@ path {
   shape-rendering: crispEdges;
 }
 
-.x.axis line {
-  stroke: lightgrey;
-}
-
-.x.axis .minor {
-  stroke-opacity: .5;
-}
-
-.x.axis path {
-  fill: none;
-  stroke: #000;
-  stroke-width: 1;
-}
-
-.y.axis line, .y.axis path {
-  fill: none;
-  stroke: #000;
-  stroke-width: 1;
+.axis line,
+.axis path {
+ 	stroke-width: 1;
+	stroke: lightgrey;
+	fill: none;
 }
 
 .axis-label {

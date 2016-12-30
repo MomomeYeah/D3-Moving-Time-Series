@@ -26,6 +26,8 @@ function displayGraphs() {
         .range([0, width]);
 
     var xAxis = d3.axisBottom(x)
+        .tickSize(-height)
+        .tickFormat("")
         .tickFormat(function(d) {
             return displaySize - d;
         });
@@ -33,6 +35,9 @@ function displayGraphs() {
     var y = d3.scaleLinear()
         .domain([0, 100])
         .range([height, 0]);
+
+    var yAxis = d3.axisLeft(y)
+        .tickSize(-width);
 
     function updateFunc(arr) {
         arr.push(Math.random() * 100);
@@ -128,7 +133,7 @@ function displayGraphs() {
 
     graph.append("svg:g")
         .attr("class", "y axis")
-        .call(d3.axisLeft(y));
+        .call(yAxis);
 
     // text label for the y axis
     graph.append("text")
