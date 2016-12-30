@@ -1,4 +1,6 @@
-(function() {
+var allowResize = true;
+
+function displayGraphs() {
     var updateInterval = 500;
 
     var displaySize = 20;
@@ -87,10 +89,13 @@
         item.line = createLine();
     });
 
+    // clear contents of graph node in case we're redrawing
+    d3.select(".graph").selectAll("*").remove();
+
     var graph = d3.select(".graph")
         .append("svg:svg")
-            .attr("width", widthBase)
-            .attr("height", heightBase)
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 " + widthBase + " " + heightBase)
         .append("svg:g")
             .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
 
@@ -170,5 +175,21 @@
         // remove oldest pata point
         dataItem.shiftFunc();
     };
+}
 
+(function() {
+    window.addEventListener("resize", () => {
+        if (allowResize) {
+            // redraw graph
+            displayGraphs();
+
+            // disable redraw for 100ms
+            allowResize = false;
+            window.setTimeout(() => {
+                allowResize = true;
+            }, 100);
+        }
+    });
+
+    displayGraphs();
 })();
