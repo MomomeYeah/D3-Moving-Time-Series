@@ -39,10 +39,6 @@ function displayGraphs() {
     var yAxis = d3.axisLeft(y)
         .tickSize(-width);
 
-    function updateFunc(arr) {
-        arr.push(Math.random() * 100);
-    }
-
     // thanks to http://www.mulinblog.com/a-color-palette-optimized-for-data-visualization/
     var colors = [
         "#5DA5DA",
@@ -53,6 +49,11 @@ function displayGraphs() {
         "#B276B2",
         "#DECF3F"
     ];
+
+    // given an array, add a new random value to it
+    function updateFunc(arr) {
+        arr.push(Math.random() * 100);
+    }
 
     function generateData() {
         var ret = []
@@ -81,28 +82,10 @@ function displayGraphs() {
 
     var data = generateData();
 
-    function createLine() {
-        return d3.line()
-            .x(function(d,i) {
-                // given data point d and index i, return the result of X(i)
-                // console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
-                return x(i - 1);
-            })
-            .y(function(d) {
-                // given data point d, return the result of Y(d)
-                // console.log('Plotting Y value for data point: ' + d + ' to be at: ' + y(d) + " using our yScale.");
-                return y(d);
-            })
-            .curve(d3.curveBasis);
-    }
-
-    data.forEach((item) => {
-        item.line = createLine();
-    });
-
     // clear contents of graph node in case we're redrawing
     d3.select(".graph").selectAll("*").remove();
 
+    // add top-level SVG element, along with legend and graph groups
     d3.select(".graph")
         .append("svg:svg")
             .attr("preserveAspectRatio", "xMinYMin meet")
@@ -117,12 +100,13 @@ function displayGraphs() {
     var legend = d3.select("#legendGroup");
     var graph = d3.select("#graphGroup");
 
+    // add x axis and move it to bottom of graph
     graph.append("svg:g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis);
 
-    // text label for the y axis
+    // text label for the x axis
     graph.append("text")
         .attr("class", "axis-label")
         .attr("y", height + (margins.bottom / 2))
@@ -131,6 +115,7 @@ function displayGraphs() {
         .style("text-anchor", "middle")
         .text("Seconds Since");
 
+    // add y axis
     graph.append("svg:g")
         .attr("class", "y axis")
         .call(yAxis);
@@ -153,7 +138,7 @@ function displayGraphs() {
                 .attr("width", width)
                 .attr("height", height);
 
-    // add legend
+    // add legend containing group
     legend.append("g")
         .attr("id", "legend")
         .append("rect")
@@ -161,6 +146,21 @@ function displayGraphs() {
             .attr("y", 0)
             .attr("width", legendWidth)
             .attr("height", legendHeight);
+
+    function createLine(dataItem) {
+        dataItem.line = d3.line()
+            .x(function(d,i) {
+                // given data point d and index i, return the result of X(i)
+                // console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
+                return x(i - 1);
+            })
+            .y(function(d) {
+                // given data point d, return the result of Y(d)
+                // console.log('Plotting Y value for data point: ' + d + ' to be at: ' + y(d) + " using our yScale.");
+                return y(d);
+            })
+            .curve(d3.curveBasis);
+    }
 
     function addLineForDataSource(dataItem) {
         graph.append("g")
@@ -220,6 +220,7 @@ function displayGraphs() {
     }
 
     data.forEach((item) => {
+        createLine(item);
         addLineForDataSource(item);
         addLegendItemForDataSource(item);
     })
