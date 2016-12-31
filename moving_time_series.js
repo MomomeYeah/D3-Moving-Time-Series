@@ -16,7 +16,7 @@ function MovingTimeSeries() {
         "#DECF3F"
     ];
 
-    this.addDataSource = (updateFunc, shiftFunc) => {
+    this.addDataSource = (legendLabel, updateFunc, shiftFunc) => {
         var index = this.data.length;
         var dArray = d3.range(this.dataSize).map(() => 0);
         this.data.push({
@@ -24,7 +24,7 @@ function MovingTimeSeries() {
             color: this.colors[index % this.colors.length],
             pathClass: "line" + index,
             legendClass: "legend" + index,
-            legendLabel: "item " + index,
+            legendLabel: legendLabel,
             line: null,
             updateFunc: () => {
                 updateFunc(dArray);
