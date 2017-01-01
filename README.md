@@ -53,6 +53,7 @@ function shiftFunc(arr) {
 
     [0, 1, 2, 3].forEach((item) => {
         mts.addDataSource(
+            "Item " + item,
             updateFunc,
             shiftFunc
         );
