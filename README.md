@@ -4,6 +4,10 @@ Infinite gratitude to [Mike Bostock](https://bost.ocks.org/mike/), in particular
 
 To run/test/develop, first `sudo npm install -g http-server` and then `http-server &`.
 
+## Examples
+
+Check out a demo [here](https://momomeyeah.github.io/D3-Moving-Time-Series/)
+
 ## What's All This, Then?
 
 Inspired by things like [NVD3](http://nvd3.org/), I wanted to have a nice, simple way to have a pretty graph showing a view of a data source from the last X seconds.  I wanted to be able to add data to this data source, and have the graph update nicely, and look like new data is streaming in on one side, and old data is streaming out the other side.
@@ -70,3 +74,22 @@ Well it displays a graph which shows the last 20 entries from as many data sourc
 There's also a legend, where you can click the descriptive text to toggle display of a line on/off.
 
 There's only 7 possible colours, so these are cycled through if there are more data sources than that.
+
+## How Do I Contribute?
+
+The normal way!  To make the GitHub Pages demo page work, I'm currently using a pre-commit hook to copy the project assets into the demo folder.
+
+Create a file called `.git/hooks/pre-commit` (note no file extension), make sure it's executable, and give it the following contents:
+
+```
+#!/bin/bash
+
+SCRIPTPATH=$( cd $(dirname $0) ; pwd -P )
+PROJECTPATH=$(dirname $(dirname $SCRIPTPATH))
+
+find "$PROJECTPATH/docs/moving_time_series" -type f | xargs rm
+cp "$PROJECTPATH/moving_time_series.css" "$PROJECTPATH/docs/moving_time_series"
+cp "$PROJECTPATH/moving_time_series.js" "$PROJECTPATH/docs/moving_time_series"
+
+git add "$PROJECTPATH/docs/moving_time_series/*"
+```
